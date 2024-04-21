@@ -1,11 +1,15 @@
-name: Build and Test pushed changes on dev branch
+name: Build and Test pushed changes for backend on dev branch
 
 on:
   push:
     branches:
       - dev
-  workflow_dispatch:  # This line enables manual triggering of the workflow
-  
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0'
+  SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
+
 jobs:
   build:
     runs-on: ubuntu-latest  
@@ -17,16 +21,15 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '8.0'  
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
 
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
     - name: Run tests (optional)
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
 
-    - name: Publish (optional)
-      run: dotnet publish -c Release -o out --no-restore
+    - name: Publish (
