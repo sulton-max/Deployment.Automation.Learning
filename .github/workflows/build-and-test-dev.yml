@@ -1,3 +1,5 @@
+name: Build and Test pushed changes on dev branch
+
 on:
   push:
     branches:
