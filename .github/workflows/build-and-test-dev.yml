@@ -32,4 +32,5 @@ jobs:
     - name: Run tests (optional)
       run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
 
-    - name: Publish (
+    - name: Publish (optional)
+      run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o out --no-restore
