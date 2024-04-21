@@ -1,4 +1,4 @@
-name: Build and Test pushed changes for backend on dev branch
+name: Build & Test Backend on Dev
 
 on:
   push:
@@ -31,6 +31,3 @@ jobs:
 
     - name: Run tests (optional)
       run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
-
-    - name: Publish (optional)
-      run: dotnet publish ${{ env.SOLUTION_PATH }} -c Release -o out --no-restore
