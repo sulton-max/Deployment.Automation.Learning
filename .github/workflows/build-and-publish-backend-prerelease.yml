@@ -1,0 +1,48 @@
+name: Build & Publish Backend on Pre Release
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  DOTNET_VERSION: '8.0'
+  SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
+  PACKAGE_TITLE: 'Max.DemoPackage'  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+    - name: Build
+      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+    - name: Run tests
+      run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
+
+    - name: Determine new version number with pre-release suffix
+      id: new_version
+      run: |
+        echo "Fetching latest version from NuGet..."
+        LATEST_VERSION=$(dotnet nuget list package versions -p ${{ env.PACKAGE_TITLE }} --source https://api.nuget.org/v3/index.json | tail -1)
+        PRERELEASE_VERSION="$((LATEST_VERSION + 1))-alpha"
+        echo "New pre-release version: $PRERELEASE_VERSION"
+        echo "::set-output name=version::$PRERELEASE_VERSION"
+
+    - name: Pack pre-release package
+      run: dotnet pack ${{ env.SOLUTION_PATH }} -c Release -o ./nupkgs /p:PackageVersion=${{ steps.new_version.outputs.version }}
+
+    - name: Push pre-release package to NuGet
+      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
