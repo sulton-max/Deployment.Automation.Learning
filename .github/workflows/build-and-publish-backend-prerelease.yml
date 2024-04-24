@@ -67,7 +67,7 @@ jobs:
 
             echo "Fetching latest version for package $PACKAGE_ID from NuGet..."
             # Fetch all versions with nuget list, then narrow down to specific package
-            LATEST_VERSION=$(nuget list $PACKAGE_ID -PreRelease -Verbosity quiet -Source https://api.nuget.org/v3/index.json | grep "$PACKAGE_ID" | awk '{print $2}')
+            LATEST_VERSION=$(nuget list $PACKAGE_ID -PreRelease | grep "$PACKAGE_ID" | awk '{print $2}')
             echo "Latest version fetched: $LATEST_VERSION"
 
             if [ -z "$LATEST_VERSION" ]; then
