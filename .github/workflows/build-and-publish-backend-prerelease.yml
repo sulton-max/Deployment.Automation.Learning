@@ -43,8 +43,9 @@ jobs:
 
       - name: Find Packable Projects
         run: |
+          # Find all csproj files and check for PackageId, ensuring xargs exits successfully
           echo "Finding projects with PackageId defined..."
-          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' | xargs -I {} sh -c "grep -q '<PackageId>' {} && echo {}")
+          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true")
           echo "PACKABLE_PROJECTS<<EOF" >> $GITHUB_ENV
           echo "$PACKABLE_PROJECTS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
