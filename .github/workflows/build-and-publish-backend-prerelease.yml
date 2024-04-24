@@ -56,6 +56,7 @@ jobs:
             PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
 
             # Fetch the latest pre-release version from NuGet
+            echo "Getting latest pre-release version for $PACKAGE_ID..."
             LATEST_VERSION=$(aarnaud/nugetversion@v1.0.4 --id $PACKAGE_ID --project-path $CS_PROJ --prerelease)
             echo "Latest pre-release version fetched: $LATEST_VERSION"
 
