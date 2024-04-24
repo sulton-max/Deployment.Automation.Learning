@@ -8,7 +8,8 @@ on:
 env:
   DOTNET_VERSION: '8.0'
   SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
-  PACKAGES_PATH: 'src'
+  TESTS_SOLUTION_PATH: 'test/Deployment.Automation.Learning.sln'
+  PACKAGES_PATH: 'src/Deployment.Automation.Learning.Tests.sln'
 
 jobs:
   build_and_test:
@@ -27,6 +28,9 @@ jobs:
 
       - name: Build
         run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
 
   publish_prerelease:
     needs: build_and_test
