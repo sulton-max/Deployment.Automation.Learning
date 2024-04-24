@@ -12,8 +12,7 @@ env:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest  
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,15 +31,9 @@ jobs:
   publish_prerelease:
     needs: build_and_test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Find Packable Projects
         run: |
@@ -58,35 +51,19 @@ jobs:
       - name: Pack and Push Each Project
         run: |
           for CS_PROJ in $(echo "$PACKABLE_PROJECTS")
-            do
-              TEST_ID=0
-              echo "Test log of variable $TEST_ID"
-            
-              # Get package ID
-              PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
-              
-              # Fetch the latest version from NuGet and increment it for new pre-release
-              echo "Fetching latest version from NuGet for $PACKAGE_ID..."
-              LATEST_VERSION=$(dotnet nuget list package versions -p $PACKAGE_ID --source https://api.nuget.org/v3/index.json | tail -1 | awk '{print $1}')
-              echo "Latest version fetched: $LATEST_VERSION"
+          do
+            # Get package ID
+            PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
 
-              # Extract major, minor, and pre-release components
-              MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
-              MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
-              PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
-            
-              # Check for existing pre-release segment and increment
-              PRE_RELEASE=$(echo $LATEST_VERSION | grep -oP 'alpha.\d+')
-              PRE_RELEASE_NUMBER=$(echo $PRE_RELEASE | grep -oP '\d+')
-              NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
-              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
-              echo "New version will be $NEW_VERSION"
+            # Fetch the latest pre-release version from NuGet
+            LATEST_VERSION=$(aarnaud/nugetversion@v1.0.4 --id $PACKAGE_ID --project-path $CS_PROJ --prerelease)
+            echo "Latest pre-release version fetched: $LATEST_VERSION"
 
-              # Pack nuget package
-              echo "Packing project $CS_PROJ with version $PACKAGE_VERSION"
-              dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$PACKAGE_VERSION
-              echo "Pushing package ${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
+            # Pack nuget package
+            PACKAGE_VERSION="$LATEST_VERSION-alpha.$(($(echo $LATEST_VERSION | grep -oP 'alpha.\d+' | grep -oP '\d+') + 1))"
+            echo "New version will be $PACKAGE_VERSION"
+            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$PACKAGE_VERSION
 
-              # Pushing package to Nuget source
-              dotnet nuget push "./nupkgs/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
-            done
+            # Pushing package to Nuget source
+            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+          done
