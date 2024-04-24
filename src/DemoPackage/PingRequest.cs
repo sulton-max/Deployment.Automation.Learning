@@ -4,5 +4,5 @@ public class PingRequest
 {
     public string Send() => "Pong";
     
-    public ValueTask<string> SendAsync() => ValueTask.FromResult("Pong");
+    public Task<string> SendAsync() => Task.FromResult("Pong");
 }
