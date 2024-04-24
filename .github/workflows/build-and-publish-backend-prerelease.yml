@@ -1,4 +1,4 @@
-name: Build & Test Backend on Dev, Publish on Release
+name: Build & Test Backend for Development, Publish PreRelease Version
 
 on:
   push:
@@ -8,56 +8,56 @@ on:
 env:
   DOTNET_VERSION: '8.0'
   SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
-  PACKAGE_TITLE: 'Max.DemoPackage'
+  PACKAGES_PATH: 'src'
 
 jobs:
   build_and_test:
     runs-on: ubuntu-latest  
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.SOLUTION_PATH }}
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
 
-    - name: Build
-      run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
+      - name: Build
+        run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
-    - name: Run tests (optional)
-      run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
-
-  publish:
+  publish_prerelease:
     needs: build_and_test
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Determine new version number with pre-release suffix
-      id: new_version
-      run: |
-        echo "Fetching latest version from NuGet..."
-        LATEST_VERSION=$(dotnet nuget list package versions -p ${{ env.PACKAGE_TITLE }} --source https://api.nuget.org/v3/index.json | tail -1 | awk '{print $1}')
-        NEW_VERSION="$((LATEST_VERSION + 1))-alpha"
-        echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
+      - name: Find Packable Projects
+        run: |
+          echo "Finding projects with PackageId defined..."
+          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' | xargs -I {} sh -c "grep -q '<PackageId>' {} && echo {}")
+          echo "PACKABLE_PROJECTS<<EOF" >> $GITHUB_ENV
+          echo "$PACKABLE_PROJECTS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-    - name: Restore dependencies
-      run: dotnet restore ${{ env.SOLUTION_PATH }}
+      - name: Display packable projects
+        run: |
+          echo "Packable projects found:"
+          echo "$PACKABLE_PROJECTS"
 
-    - name: Pack pre-release package
-      run: dotnet pack ${{ env.SOLUTION_PATH }} -c Release -o ./nupkgs /p:PackageVersion=${{ env.VERSION }}
-
-    - name: Push pre-release package to NuGet
-      run: dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: Pack and Push Each Project
+        run: |
+          for CS_PROJ in $(echo "$PACKABLE_PROJECTS"); do
+            PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/')
+            PACKAGE_VERSION=$(grep '<Version>' $CS_PROJ | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' || echo "1.0.0-alpha.0")
+            dotnet pack $CS_PROJ -c Release -o ./
