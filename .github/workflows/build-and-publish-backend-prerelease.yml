@@ -59,10 +59,20 @@ jobs:
         run: |
           for CS_PROJ in $(echo "$PACKABLE_PROJECTS")
             do
-            PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
-            PACKAGE_VERSION=$(grep '<Version>' $CS_PROJ | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p' || echo "1.0.0-alpha.0")
-            echo "Packing project $CS_PROJ with version $PACKAGE_VERSION"
-            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$PACKAGE_VERSION
-            echo "Pushing package ${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
-            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
-          done
+              # Get package ID
+              PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
+              
+              # Calculate package version
+              PACKAGE_VERSION=$(grep '<Version>' $CS_PROJ | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p')
+              if [ -z "$PACKAGE_VERSION" ]; then
+                PACKAGE_VERSION="1.0.0-alpha.0"
+              fi
+
+              # Pack nuget package
+              echo "Packing project $CS_PROJ with version $PACKAGE_VERSION"
+              dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$PACKAGE_VERSION
+              echo "Pushing package ${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg"
+
+              # Pushing package to Nuget source
+              dotnet nuget push "./nupkgs/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+            done
