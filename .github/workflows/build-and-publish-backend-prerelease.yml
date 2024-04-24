@@ -15,6 +15,7 @@ env:
 
 jobs:
   build_and_test:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -36,6 +37,7 @@ jobs:
 
   publish_prerelease:
     needs: build_and_test
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
