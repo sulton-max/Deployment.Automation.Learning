@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - dev
+    paths:
+      - 'src/**'
 
 env:
   DOTNET_VERSION: '8.0'
