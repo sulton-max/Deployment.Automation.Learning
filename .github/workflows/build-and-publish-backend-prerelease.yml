@@ -78,9 +78,6 @@ jobs:
             LATEST_VERSION=$(nuget list $PACKAGE_ID -PreRelease | grep "$PACKAGE_ID" | awk '{print $2}')
             echo "Latest version fetched: $LATEST_VERSION"
 
-            TEST=$(nuget list $PACKAGE_ID -PreRelease)
-            echo "TEST: $TEST"
-
             # Calculate new version
             if [ -z "$LATEST_VERSION" ]; then
               echo "No versions found on NuGet. Assigning default version..."
