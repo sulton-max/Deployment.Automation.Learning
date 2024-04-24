@@ -55,16 +55,41 @@ jobs:
             # Get package ID
             PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
 
-            # Fetch the index of versions available for the package
-            PACKAGE_URL=$(curl -s "https://api.nuget.org/v3/index.json" | jq -r '.resources[] | select(.["@type"]=="RegistrationsBaseUrl/Versioned") | .["@id"]')
-            PACKAGE_METADATA_URL="${PACKAGE_URL}${PACKAGE_ID}/index.json"
-            LATEST_VERSION=$(curl -s $PACKAGE_METADATA_URL | jq -r '.items | .[-1].upper')      
+            # Check if the package ID was successfully extracted
+            if [ -z "$PACKAGE_ID" ]; then
+              echo "Skipped project because $CS_PROJ, because PackageId was not specificed"
+              continue  # Skip to the next project if no Package ID found
+            fi
 
-            # Pack nuget package
-            PACKAGE_VERSION="$LATEST_VERSION-alpha.$(($(echo $LATEST_VERSION | grep -oP 'alpha.\d+' | grep -oP '\d+') + 1))"
-            echo "New version will be $PACKAGE_VERSION"
-            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$PACKAGE_VERSION
+            echo "Fetching latest version for package $PACKAGE_ID from NuGet..."
+            # Fetch all versions with nuget list, then narrow down to specific package
+            LATEST_VERSION=$(nuget list $PACKAGE_ID -PreRelease -Verbosity quiet -Source https://api.nuget.org/v3/index.json | grep "$PACKAGE_ID" | awk '{print $2}')
+            echo "Latest version fetched: $LATEST_VERSION"
 
-            # Pushing package to Nuget source
-            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${PACKAGE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+            if [ -z "$LATEST_VERSION" ]; then
+              echo "No versions found on NuGet. Assigning default version..."
+              MAJOR=1
+              MINOR=0
+              PATCH=0
+              NEW_PRE_RELEASE_NUMBER=1
+            else
+              # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
+              MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
+              MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
+              PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | cut -d '-' -f1)
+              # Handle pre-release version incrementation
+              PRE_RELEASE_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
+              NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
+            fi
+
+            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
+            echo "New version will be $NEW_VERSION"
+
+            # Pack the project with the new version
+            echo "Packing project $CS_PROJ with version $NEW_VERSION"
+            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$NEW_VERSION
+    
+            # Push the package to NuGet
+            echo "Pushing package ${PACKAGE_ID}.${NEW_VERSION}.nupkg"
+            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${NEW_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
           done
