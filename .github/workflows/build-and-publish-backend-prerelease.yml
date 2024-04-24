@@ -55,10 +55,10 @@ jobs:
             # Get package ID
             PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
 
-            # Fetch the latest pre-release version from NuGet
-            echo "Getting latest pre-release version for $PACKAGE_ID..."
-            LATEST_VERSION=$(aarnaud/nugetversion@v1.0.4 --id $PACKAGE_ID --project-path $CS_PROJ --prerelease)
-            echo "Latest pre-release version fetched: $LATEST_VERSION"
+            # Fetch the index of versions available for the package
+            PACKAGE_URL=$(curl -s "https://api.nuget.org/v3/index.json" | jq -r '.resources[] | select(.["@type"]=="RegistrationsBaseUrl/Versioned") | .["@id"]')
+            PACKAGE_METADATA_URL="${PACKAGE_URL}${PACKAGE_ID}/index.json"
+            LATEST_VERSION=$(curl -s $PACKAGE_METADATA_URL | jq -r '.items | .[-1].upper')      
 
             # Pack nuget package
             PACKAGE_VERSION="$LATEST_VERSION-alpha.$(($(echo $LATEST_VERSION | grep -oP 'alpha.\d+' | grep -oP '\d+') + 1))"
