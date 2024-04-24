@@ -62,11 +62,22 @@ jobs:
               # Get package ID
               PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
               
-              # Calculate package version
-              PACKAGE_VERSION=$(grep '<Version>' $CS_PROJ | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p')
-              if [ -z "$PACKAGE_VERSION" ]; then
-                PACKAGE_VERSION="1.0.0-alpha.0"
-              fi
+              # Fetch the latest version from NuGet and increment it for new pre-release
+              echo "Fetching latest version from NuGet for $PACKAGE_ID..."
+              LATEST_VERSION=$(dotnet nuget list package versions -p $PACKAGE_ID --source https://api.nuget.org/v3/index.json | tail -1 | awk '{print $1}')
+              echo "Latest version fetched: $LATEST_VERSION"
+
+              # Extract major, minor, and pre-release components
+              MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
+              MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
+              PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+            
+              # Check for existing pre-release segment and increment
+              PRE_RELEASE=$(echo $LATEST_VERSION | grep -oP 'alpha.\d+')
+              PRE_RELEASE_NUMBER=$(echo $PRE_RELEASE | grep -oP '\d+')
+              NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
+              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
+              echo "New version will be $NEW_VERSION"
 
               # Pack nuget package
               echo "Packing project $CS_PROJ with version $PACKAGE_VERSION"
