@@ -75,10 +75,11 @@ jobs:
 
             if [ -z "$LATEST_VERSION" ]; then
               echo "No versions found on NuGet. Assigning default version..."
-              MAJOR=1
+              echo "No versions found on NuGet. Assigning default version..."
+              MAJOR=$DOTNET_MAJOR_VERSION
               MINOR=0
-              PATCH=0
-              NEW_PRE_RELEASE_NUMBER=1
+              PATCH=1  
+              NEW_PRE_RELEASE_NUMBER=0
             else
               # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
               MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
