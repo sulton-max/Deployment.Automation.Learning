@@ -59,6 +59,9 @@ jobs:
         run: |
           for CS_PROJ in $(echo "$PACKABLE_PROJECTS")
             do
+              TEST_ID=0
+              echo "Test log of variable $TEST_ID"
+            
               # Get package ID
               PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
               
