@@ -61,7 +61,8 @@ jobs:
         run: |
           for CS_PROJ in $(echo "$PACKABLE_PROJECTS")
           do
-            DOTNET_MAJOR_VERSION=$(echo "${{ env.DOTNET_VERSION }}" | cut -d '.' -f1)  # Correctly extract the major version from DOTNET_VERSION
+            # Correctly extract the major version from DOTNET_VERSION
+            DOTNET_MAJOR_VERSION=$(echo "${{ env.DOTNET_VERSION }}" | cut -d '.' -f1)  
           
             # Get package ID
             PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
