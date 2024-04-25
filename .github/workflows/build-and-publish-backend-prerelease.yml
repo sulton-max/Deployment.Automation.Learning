@@ -84,10 +84,11 @@ jobs:
               echo "No versions found on NuGet. Assigning default version..."
               NEW_VERSION="${DOTNET_MAJOR_VERSION}.0.1"
             else
-            # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
-            MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
-            MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
-            PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+              # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
+              MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
+              MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
+              PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+            fi
 
             # Check if a pre-release version exists and increment or initialize
             if echo $LATEST_VERSION | grep -q 'alpha'; then
