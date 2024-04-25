@@ -33,7 +33,7 @@ jobs:
         run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ${{ env.SOLUTION_PATH }} --no-restore --verbosity normal
+        run: dotnet test ${{ env.TESTS_SOLUTION_PATH }} --no-restore --verbosity normal
 
   publish_prerelease:
     needs: build_and_test
@@ -82,22 +82,23 @@ jobs:
             # Calculate new version
             if [ -z "$LATEST_VERSION" ]; then
               echo "No versions found on NuGet. Assigning default version..."
-              NEW_VERSION="${DOTNET_MAJOR_VERSION}.0.1"
+              NEW_VERSION="${DOTNET_MAJOR_VERSION}.0.0-alpha.0"
             else
               # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
               MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
               MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
               PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
-            fi
 
-            # Check if a pre-release version exists and increment or initialize
-            if echo $LATEST_VERSION | grep -q 'alpha'; then
-              PRE_RELEASE_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
-              NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
-              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
-            else
-              # Initialize a new pre-release version if none exists
-              NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.0"
+              # Check if the latest version is a pre-release version
+              if echo $LATEST_VERSION | grep -q 'alpha'; then
+                PRE_RELEASE_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
+                NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
+                NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
+              else
+                # Initialize a new pre-release version if none exists
+                NEW_PATCH_NUMBER=$((PATCH + 1))
+                NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH_NUMBER}-alpha.0"
+              fi
             fi
 
             echo "New version will be $NEW_VERSION"
