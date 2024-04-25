@@ -10,7 +10,7 @@ on:
 env:
   DOTNET_VERSION: '8.0'
   SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
-  TESTS_SOLUTION_PATH: 'test/Deployment.Automation.Learning.sln'
+  TESTS_SOLUTION_PATH: '/Deployment.Automation.Learning.Tests.sln'
   PACKAGES_PATH: 'src'
 
 jobs:
