@@ -116,6 +116,11 @@ jobs:
                     echo "Error: Skipped package $PACKAGE_ID, because current alpha number is not one above the latest alpha number"
                     continue
                   fi
+
+                  if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
+                    echo "Error: Skipped package $PACKAGE_ID, because either the minor or patch version is not equal or greater than the latest version"
+                    continue
+                  fi
               else
 
                 if [[ $MINOR -ne $((LATEST_MINOR + 1)) && $PATCH -ne $((LATEST_PATCH + 1)) ]]; then
