@@ -4,10 +4,12 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <Version>1.0.0</Version>
         <Authors>WoW 2.0 Team</Authors>
         <Description>Demo package to test publishing using github actions</Description>
         <Title>WoW2.DemoPackage</Title>
         <PackageId>WoW2.DemoPackage</PackageId>
+        <InformationalVersion>Major</InformationalVersion>
     </PropertyGroup>
 
 </Project>
