@@ -111,17 +111,24 @@ jobs:
               # Validate current version against the latest version
               if echo $LATEST_VERSION | grep -q 'alpha'; then
 
-                if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
-                  echo "Error: Package $PACKAGE_ID is invalid, because either the minor or patch version is not equal or greater than the latest version"
+              if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
+                echo "Error: Package $PACKAGE_ID is invalid, because either the minor or patch version is not equal or greater than the latest version"
+                exit 1
+              fi
+      
+              if [[ $MAJOR -gt $LATEST_MAJOR || $MINOR -gt $LATEST_MINOR ]]; then
+                if [[ $ALPHA_NUMBER -ne 0 ]]; then
+                  echo "Error: Package $PACKAGE_ID is invalid, because it's a new major or minor version and the alpha number is not 0"
                   exit 1
                 fi
-
+              else
                 LATEST_ALPHA_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
                 if [[ $ALPHA_NUMBER -ne $((LATEST_ALPHA_NUMBER + 1)) ]]; then
                   echo "Error: Package $PACKAGE_ID is invalid, because current alpha number is not one above the latest alpha number"
                   exit 1
                 fi
-               
+              fi
+
               else
 
                 if [[ $MINOR -ne $((LATEST_MINOR + 1)) && $PATCH -ne $((LATEST_PATCH + 1)) ]]; then
