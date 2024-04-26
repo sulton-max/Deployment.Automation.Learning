@@ -111,16 +111,17 @@ jobs:
               # Validate current version against the latest version
               if echo $LATEST_VERSION | grep -q 'alpha'; then
 
-                LATEST_ALPHA_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
-                  if [[ $ALPHA_NUMBER -ne $((LATEST_ALPHA_NUMBER + 1)) ]]; then
-                    echo "Error: Skipped package $PACKAGE_ID, because current alpha number is not one above the latest alpha number"
-                    exit 1
-                  fi
+                if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
+                  echo "Error: Skipped package $PACKAGE_ID, because either the minor or patch version is not equal or greater than the latest version"
+                  exit 1
+                fi
 
-                  if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
-                    echo "Error: Skipped package $PACKAGE_ID, because either the minor or patch version is not equal or greater than the latest version"
-                    exit 1
-                  fi
+                LATEST_ALPHA_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
+                if [[ $ALPHA_NUMBER -ne $((LATEST_ALPHA_NUMBER + 1)) ]]; then
+                  echo "Error: Skipped package $PACKAGE_ID, because current alpha number is not one above the latest alpha number"
+                  exit 1
+                fi
+               
               else
 
                 if [[ $MINOR -ne $((LATEST_MINOR + 1)) && $PATCH -ne $((LATEST_PATCH + 1)) ]]; then
