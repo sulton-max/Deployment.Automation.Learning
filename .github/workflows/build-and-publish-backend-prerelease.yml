@@ -15,7 +15,7 @@ env:
 
 jobs:
   build_and_test:
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -32,9 +32,12 @@ jobs:
       - name: Build
         run: dotnet build ${{ env.SOLUTION_PATH }} --configuration Release --no-restore
 
+      - name: Test
+        run: dotnet test ${{ env.TESTS_SOLUTION_PATH }} --verbosity normal
+
   publish_prerelease:
     needs: build_and_test
-    timeout-minutes: 20
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
