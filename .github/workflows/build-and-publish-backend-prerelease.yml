@@ -61,55 +61,75 @@ jobs:
             # Correctly extract the major version from DOTNET_VERSION
             DOTNET_MAJOR_VERSION=$(echo "${{ env.DOTNET_VERSION }}" | cut -d '.' -f1)  
           
-            # Get package ID
-            PACKAGE_ID=$(grep '<PackageId>' $CS_PROJ | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
-
-            # Check if the package ID was successfully extracted
+            # Extract Package ID
+            PACKAGE_ID=$(grep '<PackageId>' "$CS_PROJ" | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
             if [ -z "$PACKAGE_ID" ]; then
-              echo "Skipped project because $CS_PROJ, because PackageId was not specificed"
-              continue  # Skip to the next project if no Package ID found
+              echo "PackageId not specified in $CS_PROJ"
+              continue
+            fi
+
+            # Extract Version
+            VERSION=$(grep '<Version>' "$CS_PROJ" | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p')
+            if [ -z "$VERSION" ]; then
+              echo "Version not specified in $CS_PROJ, skipping..."
+              continue
+            fi
+
+            echo "Current version of package $CS_PROJ is $VERSION"
+
+            # Extract the major, minor, patch and alpha numbers
+            MAJOR=$(echo $VERSION | cut -d '.' -f1)
+            MINOR=$(echo $VERSION | cut -d '.' -f2)
+            PATCH=$(echo $VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+            ALPHA_SUFFIX=$(echo $VERSION | grep -o '[a-zA-Z]*')
+            ALPHA_NUMBER=$(echo $VERSION | grep -o '[0-9]*$')
+
+            # Check if the alpha suffix and alpha number exist
+            if [[ -z "$ALPHA_SUFFIX" || -z "$ALPHA_NUMBER" ]]; then
+              echo "Error: Skipped package $CS_PROJ, because Version does not have an alpha suffix and alpha number"
+              continue  
             fi
 
             # Fetch latest version from NuGet
             echo "Fetching latest version for package $PACKAGE_ID from NuGet..."
-            # Fetch all versions with nuget list, then narrow down to specific package
             LATEST_VERSION=$(nuget list $PACKAGE_ID -PreRelease | grep "$PACKAGE_ID" | awk '{print $2}')
             echo "Latest version fetched: $LATEST_VERSION"
 
-            # Calculate new version
-            if [ -z "$LATEST_VERSION" ]; then
-              echo "No versions found on NuGet. Assigning default version..."
-              NEW_VERSION="${DOTNET_MAJOR_VERSION}.0.0-alpha.0"
-            else
-              # Extract major, minor, and patch numbers assuming version format is semver (Major.Minor.Patch-PreRelease)
-              MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
-              MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
-              PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+            if [[ "$MAJOR" != "$DOTNET_MAJOR_VERSION" ]]; then
+              echo "Error: kipped package $CS_PROJ, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
+              continue
+            fi
 
-              # Check if the latest version is a pre-release version
+            if [[ ! -z "$LATEST_VERSION" && $LATEST_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+
+              # Extract major, minor, and patch version from latest version
+              LATEST_MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
+              LATEST_MINOR=$(echo $LATEST_VERSION | cut -d '.' -f2)
+              LATEST_PATCH=$(echo $LATEST_VERSION | cut -d '.' -f3 | grep -o '^[0-9]*')
+
+              # Validate current version against the latest version
               if echo $LATEST_VERSION | grep -q 'alpha'; then
-                PRE_RELEASE_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
-                NEW_PRE_RELEASE_NUMBER=$((PRE_RELEASE_NUMBER + 1))
 
-                NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}-alpha.${NEW_PRE_RELEASE_NUMBER}"
+                LATEST_ALPHA_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
+                  if [[ $ALPHA_NUMBER -ne $((LATEST_ALPHA_NUMBER + 1)) ]]; then
+                    echo "Error: Skipped package $CS_PROJ, because current alpha number is not one above the latest alpha number"
+                    continue
+                  fi
               else
-                # Check if this version must be a major update
-                if(${{ github.event.label.name == 'major-update' && github.event.action == 'labeled' }})
-                  MINOR=$((MINOR + 1))
-                else 
-                  PATCH=$((PATCH + 1))
 
-                NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH_NUMBER}-alpha.0"
+                if [[ $MINOR -ne $((LATEST_MINOR + 1)) && $PATCH -ne $((LATEST_PATCH + 1)) ]]; then
+                  echo "Error: Skipped package $CS_PROJ, because either the minor or patch version is not one higher than the latest version"
+                  continue
+                fi
+
               fi
             fi
 
-            echo "New version will be $NEW_VERSION"
-
             # Pack the project with the new version
-            echo "Packing project $CS_PROJ with version $NEW_VERSION"
-            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$NEW_VERSION
+            echo "Packing project $CS_PROJ with version $VERSION"
+            dotnet pack $CS_PROJ -c Release -o ./nupkgs /p:PackageVersion=$VERSION
     
             # Push the package to NuGet
-            echo "Pushing package ${PACKAGE_ID}.${NEW_VERSION}.nupkg"
-            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${NEW_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+            echo "Pushing package ${PACKAGE_ID}.${VERSION}.nupkg"
+            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
           done
