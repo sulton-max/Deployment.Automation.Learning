@@ -72,7 +72,7 @@ jobs:
             VERSION=$(grep '<Version>' "$CS_PROJ" | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p')
             if [ -z "$VERSION" ]; then
               echo "Error: Skipped package $PACKAGE_ID, because Version is not specified"
-              continue
+              exit 1
             fi
 
             echo "Current version of package $PACKAGE_ID is $VERSION"
@@ -87,13 +87,13 @@ jobs:
             # Check if the alpha suffix and alpha number exist
             if [[ -z "$ALPHA_SUFFIX" || -z "$ALPHA_NUMBER" ]]; then
               echo "Error: Skipped package $PACKAGE_ID, because Version does not have an alpha suffix and alpha number"
-              continue  
+              exit 1
             fi
 
             # Check if the major version matches the .NET version
             if [[ "$MAJOR" != "$DOTNET_MAJOR_VERSION" ]]; then
-            echo "Error: Skipped package $PACKAGE_ID, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
-            continue
+              echo "Error: Skipped package $PACKAGE_ID, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
+              exit 1
             fi
 
             # Fetch latest version from NuGet
@@ -114,18 +114,18 @@ jobs:
                 LATEST_ALPHA_NUMBER=$(echo $LATEST_VERSION | grep -oP 'alpha.\K\d+')
                   if [[ $ALPHA_NUMBER -ne $((LATEST_ALPHA_NUMBER + 1)) ]]; then
                     echo "Error: Skipped package $PACKAGE_ID, because current alpha number is not one above the latest alpha number"
-                    continue
+                    exit 1
                   fi
 
                   if [[ $MINOR -lt $LATEST_MINOR || ($MINOR -eq $LATEST_MINOR && $PATCH -lt $LATEST_PATCH) ]]; then
                     echo "Error: Skipped package $PACKAGE_ID, because either the minor or patch version is not equal or greater than the latest version"
-                    continue
+                    exit 1
                   fi
               else
 
                 if [[ $MINOR -ne $((LATEST_MINOR + 1)) && $PATCH -ne $((LATEST_PATCH + 1)) ]]; then
                   echo "Error: Skipped package $PACKAGE_ID, because either the minor or patch version is not one higher than the latest version"
-                  continue
+                  exit 1
                 fi
 
               fi
