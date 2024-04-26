@@ -64,14 +64,14 @@ jobs:
             # Extract Package ID
             PACKAGE_ID=$(grep '<PackageId>' "$CS_PROJ" | sed -n 's/.*<PackageId>\(.*\)<\/PackageId>.*/\1/p')
             if [ -z "$PACKAGE_ID" ]; then
-              echo "PackageId not specified in $CS_PROJ"
+              echo "Skipping project $CS_PROJ, because PackageId not specified"
               continue
             fi
 
             # Extract Version
             VERSION=$(grep '<Version>' "$CS_PROJ" | sed -n 's/.*<Version>\(.*\)<\/Version>.*/\1/p')
             if [ -z "$VERSION" ]; then
-              echo "Version not specified in $CS_PROJ, skipping..."
+              echo "Error: Skipped package $CS_PROJ, because Version is not specified"
               continue
             fi
 
@@ -96,7 +96,7 @@ jobs:
             echo "Latest version fetched: $LATEST_VERSION"
 
             if [[ "$MAJOR" != "$DOTNET_MAJOR_VERSION" ]]; then
-              echo "Error: kipped package $CS_PROJ, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
+              echo "Error: Skipped package $CS_PROJ, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
               continue
             fi
 
