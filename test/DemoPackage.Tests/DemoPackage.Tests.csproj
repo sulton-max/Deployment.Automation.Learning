@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\DemoPackage.New\DemoPackage.New.csproj" />
       <ProjectReference Include="..\..\src\DemoPackage\DemoPackage.csproj" />
     </ItemGroup>
 

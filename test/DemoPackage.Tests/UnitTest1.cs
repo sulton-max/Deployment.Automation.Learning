@@ -1,3 +1,5 @@
+using DemoPackage.New;
+
 namespace DemoPackage.Tests;
 
 public class UnitTest1
