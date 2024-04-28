@@ -9,6 +9,7 @@ public class UnitTest1
     {
         // Arrange
         var pingRequest = new PingRequest();
+        
 
         // Act
         var result = pingRequest.Send();
