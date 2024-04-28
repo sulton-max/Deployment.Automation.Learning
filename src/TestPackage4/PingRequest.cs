@@ -1,4 +1,4 @@
-﻿namespace TestPackage2;
+﻿namespace TestPackage4;
 
 public class PingRequest
 {

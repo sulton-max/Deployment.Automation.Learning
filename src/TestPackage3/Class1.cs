@@ -1,4 +1,4 @@
-﻿namespace TestPackage;
+﻿namespace TestPackage3;
 
 public class Class1
 {

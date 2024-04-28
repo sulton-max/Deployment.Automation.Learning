@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoPackage.Tests", "DemoPa
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sources", "Sources", "{938509D6-686B-46DE-A139-2AE44C82A0BA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPackage2", "..\src\TestPackage2\TestPackage2.csproj", "{CA720E83-E087-455B-A25B-54A606E65143}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPackage4", "..\src\TestPackage4\TestPackage4.csproj", "{D88B73D7-521A-40D5-B8A0-F46AA4C53539}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,12 +16,12 @@ Global
 		{23F43AEB-4110-4C71-BF02-5D8A1159D372}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23F43AEB-4110-4C71-BF02-5D8A1159D372}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23F43AEB-4110-4C71-BF02-5D8A1159D372}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CA720E83-E087-455B-A25B-54A606E65143}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CA720E83-E087-455B-A25B-54A606E65143}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CA720E83-E087-455B-A25B-54A606E65143}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CA720E83-E087-455B-A25B-54A606E65143}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D88B73D7-521A-40D5-B8A0-F46AA4C53539}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D88B73D7-521A-40D5-B8A0-F46AA4C53539}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D88B73D7-521A-40D5-B8A0-F46AA4C53539}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D88B73D7-521A-40D5-B8A0-F46AA4C53539}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{CA720E83-E087-455B-A25B-54A606E65143} = {938509D6-686B-46DE-A139-2AE44C82A0BA}
+		{D88B73D7-521A-40D5-B8A0-F46AA4C53539} = {938509D6-686B-46DE-A139-2AE44C82A0BA}
 	EndGlobalSection
 EndGlobal
