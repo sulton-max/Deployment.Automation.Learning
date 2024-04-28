@@ -12,6 +12,7 @@ public class UnitTest1
 
         // Act
         var result = pingRequest.Send();
+        
 
         // Assert
         Assert.Equal("Pong", result);
