@@ -43,36 +43,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Find Packable Projects
-        id: find_projects
+        - name: Find Packable Projects
         run: |
           echo "Finding projects with PackageId defined..."
           PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true")
-          echo "::set-output name=projects::$PACKABLE_PROJECTS"
           echo "Packable projects found:"
           echo "$PACKABLE_PROJECTS"
+          echo "PACKABLE_PROJECTS=${PACKABLE_PROJECTS}" >> $GITHUB_ENV
 
       - name: Check for Changes
-        id: check_changes
         run: |
           CHANGED_PROJECTS=""
-          for PROJECT in ${{ steps.find_projects.outputs.projects }}
+          for PROJECT in $PACKABLE_PROJECTS
           do
             PROJECT_DIR=$(dirname "$PROJECT")
             # Check for changes in the project directory
-            if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "$PROJECT_DIR"
-            then
+            if git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -q "$PROJECT_DIR"; then
               CHANGED_PROJECTS="$CHANGED_PROJECTS $PROJECT"
             fi
           done
-          echo "::set-output name=changed_projects::$CHANGED_PROJECTS"
           echo "Changed packable projects:"
           echo "$CHANGED_PROJECTS"
+          echo "CHANGED_PROJECTS=${CHANGED_PROJECTS}" >> $GITHUB_ENV
 
       - name: Pack and Push Each Project
-        if: steps.check_changes.outputs.changed_projects != ''
+        if: env.CHANGED_PROJECTS != ''
         run: |
-          for CS_PROJ in ${{ steps.check_changes.outputs.changed_projects }}
+          for CS_PROJ in $CHANGED_PROJECTS
           do
             # Correctly extract the major version from DOTNET_VERSION
             DOTNET_MAJOR_VERSION=$(echo "${{ env.DOTNET_VERSION }}" | cut -d '.' -f1)  
