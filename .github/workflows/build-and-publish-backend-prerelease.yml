@@ -6,6 +6,7 @@ on:
       - dev
     paths:
       - 'src/**'
+  workflow_dispatch:
 
 env:
   DOTNET_VERSION: '8.0'
@@ -52,7 +53,7 @@ jobs:
       - name: Find Packable Projects
         run: |
           echo "Finding projects with PackageId defined..."
-          PACKABLE_PROJECTS=$(find src -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true" | tr '\n' ' ')
+          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true" | tr '\n' ' ')
           echo "Packable projects found:"
           echo "$PACKABLE_PROJECTS"
           echo "PACKABLE_PROJECTS=${PACKABLE_PROJECTS}" >> $GITHUB_ENV
