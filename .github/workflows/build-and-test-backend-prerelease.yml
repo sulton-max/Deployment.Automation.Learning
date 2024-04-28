@@ -20,11 +20,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Check for changes in source
-        id: check_source
-        run: |
-          git diff --quiet HEAD^ HEAD -- 'src/**' && echo "No changes in source" || (echo "Changes detected in source, exiting" && exit 0)
 
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v4
