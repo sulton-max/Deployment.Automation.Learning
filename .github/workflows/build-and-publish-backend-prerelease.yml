@@ -182,5 +182,5 @@ jobs:
     
             # Push the package to NuGet
             echo "Pushing package ${PACKAGE_ID}.${VERSION}.nupkg"
-            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint --skip-duplicate
           done
