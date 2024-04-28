@@ -70,7 +70,7 @@ jobs:
           for PROJECT in $PACKABLE_PROJECTS
           do
             PROJECT_DIR=$(dirname "$PROJECT")
-            echo "Checking for changes in $PROJECT_DIR..."
+            echo "Checking for changes in $PROJECT_DIR"
             if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "$PROJECT_DIR"; then
               CHANGED_PROJECTS="$CHANGED_PROJECTS $PROJECT"
             fi
