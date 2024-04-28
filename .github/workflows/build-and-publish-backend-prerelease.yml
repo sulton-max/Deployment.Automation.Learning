@@ -62,6 +62,10 @@ jobs:
         run: |
           CHANGED_PROJECTS=""
 
+          # Log the list of changed files
+          echo "List of changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
           # Check for any changed files within each the project directory
           for PROJECT in $PACKABLE_PROJECTS
           do
