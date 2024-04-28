@@ -1,4 +1,4 @@
-using DemoPackage.New;
+using TestPackage2;
 
 namespace DemoPackage.Tests;
 
@@ -9,7 +9,6 @@ public class UnitTest1
     {
         // Arrange
         var pingRequest = new PingRequest();
-        
 
         // Act
         var result = pingRequest.Send();
