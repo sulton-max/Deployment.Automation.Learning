@@ -43,7 +43,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-        - name: Find Packable Projects
+      - name: Find Packable Projects
         run: |
           echo "Finding projects with PackageId defined..."
           PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true")
@@ -67,7 +67,6 @@ jobs:
           echo "CHANGED_PROJECTS=${CHANGED_PROJECTS}" >> $GITHUB_ENV
 
       - name: Pack and Push Each Project
-        if: env.CHANGED_PROJECTS != ''
         run: |
           for CS_PROJ in $CHANGED_PROJECTS
           do
