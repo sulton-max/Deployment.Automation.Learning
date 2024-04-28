@@ -104,12 +104,6 @@ jobs:
             ALPHA_SUFFIX=$(echo $VERSION | grep -o '[a-zA-Z]*')
             ALPHA_NUMBER=$(echo $VERSION | grep -o '[0-9]*$')
 
-            # Check if the alpha suffix and alpha number exist
-            if [[ -z "$ALPHA_SUFFIX" || -z "$ALPHA_NUMBER" ]]; then
-              echo "Error: Package $PACKAGE_ID is invalid, because Version does not have an alpha suffix and alpha number"
-              exit 1
-            fi
-
             # Check if the major version matches the .NET version
             if [[ "$MAJOR" != "$DOTNET_MAJOR_VERSION" ]]; then
               echo "Error: Package $PACKAGE_ID is invalid, because of major version mismatch. Expected major version: $DOTNET_MAJOR_VERSION, but found $MAJOR"
@@ -122,6 +116,18 @@ jobs:
             echo "Latest version fetched: $LATEST_VERSION"
 
             if [[ ! -z "$LATEST_VERSION" && $LATEST_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$ ]]; then
+
+              # Check if the current version is the same as the latest version
+              if [[ "$VERSION" == "$LATEST_VERSION" ]]; then
+                echo "Warning: Skipping package $PACKAGE_ID, because it's not intended to be published yet. Current version is the same as the latest version."
+                continue
+              fi
+
+              # Check if the alpha suffix and alpha number exist
+              if [[ -z "$ALPHA_SUFFIX" || -z "$ALPHA_NUMBER" ]]; then
+                echo "Error: Package $PACKAGE_ID is invalid, because Version does not have an alpha suffix and alpha number"
+                exit 1
+              fi
 
               # Extract major, minor, and patch version from latest version
               LATEST_MAJOR=$(echo $LATEST_VERSION | cut -d '.' -f1)
