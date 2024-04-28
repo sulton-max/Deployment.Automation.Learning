@@ -1,4 +1,4 @@
-﻿namespace DemoPackage;
+﻿namespace DemoPackage.New;
 
 public class PingRequest
 {

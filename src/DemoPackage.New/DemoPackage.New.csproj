@@ -7,8 +7,8 @@
         <Version>8.0.0-alpha.0</Version>
         <Authors>WoW 2.0 Team</Authors>
         <Description>Demo package to test publishing using github actions</Description>
-        <Title>WoW2.DemoPackage</Title>
-        <PackageId>WoW2.DemoPackage</PackageId>
+        <Title>WoW2.DemoPackage.New</Title>
+        <PackageId>WoW2.DemoPackage.New</PackageId>
     </PropertyGroup>
 
 </Project>
