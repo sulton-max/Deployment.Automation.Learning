@@ -6,6 +6,8 @@ on:
       - dev
     paths:
       - 'test/**'
+    paths-ignore:
+      - 'src/**'
 
 env:
   DOTNET_VERSION: '8.0'
