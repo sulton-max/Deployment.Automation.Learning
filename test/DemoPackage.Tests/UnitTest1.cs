@@ -7,8 +7,6 @@ public class UnitTest1
     [Fact]
     public void Should_SendPingRequest_RespondPong()
     {
-        throw new InvalidOperationException();
-        
         // Arrange
         var pingRequest = new PingRequest();
 

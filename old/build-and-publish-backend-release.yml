@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - 'src/**'
+  workflow_dispatch:
 
 env:
   DOTNET_VERSION: '8.0'
   SOLUTION_PATH: 'src/Deployment.Automation.Learning.sln'
   TESTS_SOLUTION_PATH: 'test/Deployment.Automation.Learning.Tests.sln'
   PACKAGES_PATH: 'src'
+  PACKAGE_SOURCE: 'https://api.nuget.org/v3/index.json'
 
 jobs:
   build_and_test:
@@ -42,25 +44,46 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
 
       - name: Find Packable Projects
         run: |
-          # Find all csproj files and check for PackageId, ensuring xargs exits successfully
           echo "Finding projects with PackageId defined..."
-          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true")
-          echo "PACKABLE_PROJECTS<<EOF" >> $GITHUB_ENV
-          echo "$PACKABLE_PROJECTS" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Display packable projects
-        run: |
+          PACKABLE_PROJECTS=$(find ${{ env.PACKAGES_PATH }} -name '*.csproj' -print0 | xargs -0 -I {} bash -c "grep -q '<PackageId>' {} && echo {} || true" | tr '\n' ' ')
           echo "Packable projects found:"
           echo "$PACKABLE_PROJECTS"
+          echo "PACKABLE_PROJECTS=${PACKABLE_PROJECTS}" >> $GITHUB_ENV
+      
+      - name: Check if Changed Projects are Packable
+        run: |
+          CHANGED_PROJECTS=""
+  
+          # Log the list of changed files
+          echo "List of changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+  
+          # Check for any changed files within each the project directory
+          for PROJECT in $PACKABLE_PROJECTS
+          do
+            PROJECT_DIR=$(dirname "$PROJECT")
+            echo "Checking for changes in $PROJECT_DIR"
+            if echo "${{ steps.changed-files.outputs.all_changed_files }}" | grep -q "$PROJECT_DIR"; then
+              CHANGED_PROJECTS="$CHANGED_PROJECTS $PROJECT"
+            fi
+          done
+          echo "Changed packable projects:"
+          echo "$CHANGED_PROJECTS"
+          echo "CHANGED_PROJECTS=${CHANGED_PROJECTS}" >> $GITHUB_ENV
 
       - name: Pack and Push Each Project
         run: |
-          for CS_PROJ in $(echo "$PACKABLE_PROJECTS")
-          do
+          for CS_PROJ in $CHANGED_PROJECTS
+            do
             # Correctly extract the major version from DOTNET_VERSION
             DOTNET_MAJOR_VERSION=$(echo "${{ env.DOTNET_VERSION }}" | cut -d '.' -f1)  
           
@@ -129,5 +152,5 @@ jobs:
     
             # Push the package to NuGet
             echo "Pushing package ${PACKAGE_ID}.${RELEASE_VERSION}.nupkg"
-            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${RELEASE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --no-service-endpoint
+            dotnet nuget push "./nupkgs/${PACKAGE_ID}.${RELEASE_VERSION}.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source $PACKAGE_SOURCE --no-service-endpoint --skip-duplicate
           done
